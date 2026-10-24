@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nome Cognome - Spaziotempo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            border-radius: 0 !important; /* Bordi affilati e squadrati */
+        }
+
+        :root {
+            --bg-color: #030508;
+            --accent-blue: #00f0ff;
+            --accent-blue-dark: #0088cc;
+            --text-main: #ffffff;
+            --text-muted: #8a99ad;
+            --border-color: rgba(0, 240, 255, 0.25);
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            position: relative;
+        }
+
+        /* Canvas per lo spaziotempo */
+        #spacetime-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Container Principale */
+        .viewport {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            pointer-events: none;
+        }
+
+        /* Card centrale */
+        .card {
+            pointer-events: auto;
+            background: rgba(3, 5, 8, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 45px 40px;
+            max-width: 520px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* Singolarità (accento minimale blu) */
+        .singularity-node {
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent-blue);
+            margin-bottom: 25px;
+            box-shadow: 0 0 12px var(--accent-blue);
+        }
+
+        /* Header */
+        h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .role-tag {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--accent-blue);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .sub-role-tag {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--accent-blue);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+        }
+
+        /* Bio */
+        p.bio {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-align: left;
+            text-align-last: left;
+            font-weight: 300;
+        }
+
+                p.bio-r {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-align: right;
+            text-align-last: right;
+            font-weight: 300;
+        }
+
+        /* Contatti */
+        .contacts-grid {
+            margin-top: 10px;
+            display: flex;
+            width: 100%;
+            gap: 12px;
+        }
+
+        .contact-btn {
+            flex: 1;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-main);
+            text-decoration: none;
+            padding: 12px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+
+        .contact-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            background: rgba(0, 240, 255, 0.05);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+        }
+
+        /* Coordinate in basso a destra */
+        .telemetry-overlay {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            z-index: 3;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1.6;
+            text-align: right;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        .telemetry-overlay span {
+            color: var(--text-main);
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                padding: 30px 20px;
+            }
+            .contacts-grid {
+                flex-direction: column;
+            }
+            .telemetry-overlay {
+                bottom: 12px;
+                right: 12px;
+                font-size: 0.55rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="spacetime-canvas"></canvas>
+
+    <div class="viewport">
+        <div class="card" id="mass-center">
+            <!-- <div class="singularity-node"></div> -->
+            <h1>Stefano Savastano, PhD </h1>
+            <div class="role-tag">Physicist // Applied Scientist </div>
+            <div class="sub-role-tag">Performer and Clown </div>
+            <p class="bio">
+                My background education is Physics: I am a PhD graduate at Max Planck Insitute for Gravitational Physics & Humboldt University. <br>
+            </p> 
+            <p class="bio-r">
+                In recent years, I have expanded my personal research on human nature through the lens of artistic practices. I have trained and performed as physical Performer and Clown. 
+            </p> 
+            <p class="bio">
+                The common thread is the exploration of new, unknown spaces, off the map, where one can mirror oneself and question what exists.<br>
+            </p> 
+            <p class="bio-r"> 
+                I  believe in the potential that arises from the meeting of scientific knowledge and artistic attitude, drawing from the universality of human and cosmic phenomena to unveil their hidden poetry.<br>
+            </p> 
+            <p class="bio"> 
+                That's why I enjoy to follow a trans-disciplinary approach and mix these languagese in my work, research and communication. :)
+            </p>
+
+            <div class="contacts-grid">
+                <a href="mailto:stefano.savastano@outlook.com" class="contact-btn">Get in touch!</a>
+                <!-- <a href="https://linkedin.com/in/tuoprofilo" target="_blank" rel="noopener noreferrer" class="contact-btn">LinkedIn</a>
+                <a href="https://github.com/tuoprofilo" target="_blank" rel="noopener noreferrer" class="contact-btn">GitHub</a> -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Coordinate Singolarità Telemetria -->
+    <div class="telemetry-overlay">
+        EVENT HORIZON: <span id="tele-horizon">3.00 RS</span><br>
+        CURVATURE: <span id="tele-curv">k = +1.428</span><br>
+        SINGULARITY: <span id="tele-coords">RA 17h 45m / DEC -29°00'</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('spacetime-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let time = 0;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Parametri griglia
+        const spacing = 32;
+        
+        function drawSpacetime() {
+            ctx.fillStyle = '#030508';
+            ctx.fillRect(0, 0, width, height);
+
+            time += 0.015;
+
+            // Il centro di gravità è la scheda stessa
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            const maxRadius = Math.min(width, height) * 0.45;
+            const massStrength = 9000;
+
+            const cols = Math.ceil(width / spacing) + 2;
+            const rows = Math.ceil(height / spacing) + 2;
+
+            // Calcolo e disegno griglia deformata
+            for (let i = -1; i < cols; i++) {
+                ctx.beginPath();
+                for (let j = -1; j < rows; j++) {
+                    let origX = i * spacing;
+                    let origY = j * spacing;
+
+                    // Distanza dalla massa centrale
+                    let dx = origX - centerX;
+                    let dy = origY - centerY;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+
+                    // Deformazione gravitazionale statica + pulsazione cosmica
+                    let wave = Math.sin(dist * 0.02 - time) * 3;
+                    let distortion = (massStrength / (dist + 80)) + wave;
+
+                    let angle = Math.atan2(dy, dx);
+                    
+                    let newX = origX - Math.cos(angle) * distortion;
+                    let newY = origY - Math.sin(angle) * distortion;
+
+                    if (j === -1) {
+                        ctx.moveTo(newX, newY);
+                    } else {
+                        ctx.lineTo(newX, newY);
+                    }
+                }
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            for (let j = -1; j < rows; j++) {
+                ctx.beginPath();
+                for (let i = -1; i < cols; i++) {
+                    let origX = i * spacing;
+                    let origY = j * spacing;
+
+                    let dx = origX - centerX;
+                    let dy = origY - centerY;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+
+                    let wave = Math.sin(dist * 0.02 - time) * 3;
+                    let distortion = (massStrength / (dist + 80)) + wave;
+
+                    let angle = Math.atan2(dy, dx);
+                    
+                    let newX = origX - Math.cos(angle) * distortion;
+                    let newY = origY - Math.sin(angle) * distortion;
+
+                    if (i === -1) {
+                        ctx.moveTo(newX, newY);
+                    } else {
+                        ctx.lineTo(newX, newY);
+                    }
+                }
+                ctx.strokeStyle = 'rgba(0, 240, 255, 0.07)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Anelli dell'Orizzonte degli Eventi attorno al centro
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 120 + Math.sin(time) * 4, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.12)';
+            ctx.setLineDash([4, 8]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Singolarità centrale (punto blu)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 3, 0, Math.PI * 2);
+            ctx.fillStyle = '#00f0ff';
+            ctx.shadowColor = '#00f0ff';
+            ctx.shadowBlur = 15;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Aggiornamento dinamico delle coordinate
+            document.getElementById('tele-curv').textContent = `k = +${(1.4 + Math.sin(time)*0.05).toFixed(3)}`;
+
+            requestAnimationFrame(drawSpacetime);
+        }
+
+        drawSpacetime();
+    </script>
+</body>
+</html>
